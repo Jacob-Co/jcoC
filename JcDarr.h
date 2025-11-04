@@ -44,3 +44,19 @@ void jc_darr_push(struct Jc_Darr* darr, char* item) {
   darr->size += 1;
 }
 
+void * jc_darr_get(struct Jc_Darr* darr, long idx) {
+  if (idx >= darr->size) {
+    return NULL;
+  }
+
+  return darr->data_start + (idx * darr->data_size);
+}
+
+void * jc_darr_pop(struct Jc_Darr* darr) {
+  darr->size -= 1;
+  return darr->data_start + (darr->size * darr->data_size);
+}
+
+void jc_darr_free(struct Jc_Darr* darr) {
+  free(darr->data_start);
+}
