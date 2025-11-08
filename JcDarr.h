@@ -8,12 +8,12 @@ struct Jc_Darr {
   char* data_start;
 };
 
-struct Jc_Darr jc_darr_new(int data_size) {
+struct Jc_Darr jc_darr_new(int data_size, long starting_length) {
   char* data_start = malloc(data_size);
 
   struct Jc_Darr darr = {0};
   darr.data_size = data_size;
-  darr.max_size = 1;
+  darr.max_size = starting_length;
   darr.data_start = data_start;
 
   return darr;
