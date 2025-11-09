@@ -14,18 +14,55 @@ create consumer of producer (producer*, function*)
 
 */
 
+#include <stdlib.h>
+#include <string.h>
 struct Jc_Prod_Con {
-  long prod_data_size;
+  long data_item_size;
+
   void (*consumer_function)(void*);
-  /* add queue for data items*/
+
+  int prod_count; 
+
+  void* data_item;
 };
 
 struct Jc_Prod_Con jc_prod_con_new(long prod_data_size, void(*consumer_function)(void*)) {
   struct Jc_Prod_Con prod_con = {0};
-  prod_con.prod_data_size = prod_data_size;
+  prod_con.data_item_size = prod_data_size;
   prod_con.consumer_function = consumer_function;
-  /* initialize queue for data items*/
+  prod_con.prod_count = 1;
+
   return prod_con;
 } 
 
+void _consume(struct Jc_Prod_Con* prod_con) {
+  /*
+  todo: 
+    add wait here for a producer signal 
+    lock data item mtx
+  */
+
+  void * consumer_data_item = malloc(prod_con->data_item_size);
+
+  /*
+  unlock data item mtx 
+  */
+  prod_con->consumer_function(consumer_data_item);
+  free(consumer_data_item);
+  _consume(prod_con);
+}
+
+void produce(struct Jc_Prod_Con* prod_con, void* data_item) {
+  /*
+  todo: add lock here for data item
+  */
+  memcpy(prod_con->data_item, data_item, prod_con->data_item_size);
+  /*
+  todo: 
+    add unlock here for data item
+    signal consumer
+    block producer until consumer picks this up
+  */
+
+}
 
