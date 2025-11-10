@@ -43,7 +43,7 @@ int main(void) {
   jc_prod_cons_produce(prod_cons, (void *)a3);
   jc_prod_cons_produce(prod_cons, (void *)a4);
 
-  sleep(60);
+  sleep(20);
 
   if (my_values[0] != 100) {
     return 1;
