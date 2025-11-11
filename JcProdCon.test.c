@@ -18,17 +18,17 @@ int main(void) {
   struct Arg* a2 = malloc(sizeof(struct Arg));
   struct Arg* a3 = malloc(sizeof(struct Arg));
   struct Arg* a4 = malloc(sizeof(struct Arg));
-  a1->timeout = 1;
+  a1->timeout = 10; 
   a1->pos = 0;
   a1->value = 0;
   a1->values = my_values;
 
-  a2->timeout = 10;
+  a2->timeout = 20;
   a2->pos = 1;
   a2->value = 1;
   a2->values = my_values;
 
-  a3->timeout = 10;
+  a3->timeout = 20;
   a3->pos = 2;
   a3->value = 2;
   a3->values = my_values;
@@ -43,7 +43,7 @@ int main(void) {
   jc_prod_cons_produce(prod_cons, (void *)a3);
   jc_prod_cons_produce(prod_cons, (void *)a4);
 
-  sleep(20);
+  sleep(30);
 
   if (my_values[0] != 100) {
     return 1;
