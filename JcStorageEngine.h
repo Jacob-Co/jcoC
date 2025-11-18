@@ -4,12 +4,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#ifndef BLOCK_SIZE
-#define BLOCK_SIZE 4096
-#endif
 struct Jc_Storage_Engine {
   int fd;
   long last_item_offset;
+  long block_size;
 };
 /*
 store and retrieve data in files, efficiently using optimal disk blocks
@@ -34,10 +32,11 @@ data_items*
 
 const long JC_STORAGE_ENGINE_DB_HEADER_SIZE = sizeof(int) + sizeof(long);
 
-struct Jc_Storage_Engine* jc_storage_engine_new(char* name) {
+struct Jc_Storage_Engine* jc_storage_engine_new(char* name, long block_size) {
   struct Jc_Storage_Engine * storage_engine = malloc(sizeof(struct Jc_Storage_Engine));
   struct stat my_stat;
 
+  storage_engine->block_size = block_size;
   storage_engine->fd = open(name, O_CREAT | O_RDWR | O_FSYNC );
   fstat(storage_engine->fd, &my_stat);
 
@@ -59,24 +58,24 @@ struct Jc_Storage_Engine* jc_storage_engine_new(char* name) {
 
 long jc_storage_engine_write(struct Jc_Storage_Engine* storage_engine, void * data, long offset) {
   if (storage_engine->last_item_offset < offset) {
-    lseek(storage_engine->fd, (storage_engine->last_item_offset + 1) * BLOCK_SIZE + JC_STORAGE_ENGINE_DB_HEADER_SIZE ,SEEK_SET);
-    write(storage_engine->fd, data, BLOCK_SIZE);
+    lseek(storage_engine->fd, (storage_engine->last_item_offset + 1) * storage_engine->block_size + JC_STORAGE_ENGINE_DB_HEADER_SIZE ,SEEK_SET);
+    write(storage_engine->fd, data, storage_engine->block_size);
     return ++storage_engine->last_item_offset;
   } else {
-    lseek(storage_engine->fd, offset * BLOCK_SIZE + JC_STORAGE_ENGINE_DB_HEADER_SIZE ,SEEK_SET);
-    write(storage_engine->fd, data, BLOCK_SIZE);
+    lseek(storage_engine->fd, offset * storage_engine->block_size + JC_STORAGE_ENGINE_DB_HEADER_SIZE ,SEEK_SET);
+    write(storage_engine->fd, data, storage_engine->block_size);
     return offset;
   }
 }
 
 long jc_storage_engine_get(struct Jc_Storage_Engine* storage_engine, void* data, long offset) {
   if (offset > storage_engine->last_item_offset) return -1;
-  lseek(storage_engine->fd, offset * BLOCK_SIZE + JC_STORAGE_ENGINE_DB_HEADER_SIZE, SEEK_SET);
-  return read(storage_engine->fd, data, BLOCK_SIZE);
+  lseek(storage_engine->fd, offset * storage_engine->block_size + JC_STORAGE_ENGINE_DB_HEADER_SIZE, SEEK_SET);
+  return read(storage_engine->fd, data, storage_engine->block_size);
 }
 
 long jc_storage_engine_delete_last_block(struct Jc_Storage_Engine* storage_engine) {
-  /*ftruncate(storage_engine->fd, storage_engine->latest_item_offset * BLOCK_SIZE + JC_STORAGE_ENGINE_DB_HEADER_SIZE);*/ 
+  /*ftruncate(storage_engine->fd, storage_engine->latest_item_offset * storage_engine->block_size + JC_STORAGE_ENGINE_DB_HEADER_SIZE);*/ 
   return --storage_engine->last_item_offset;
 }
 
