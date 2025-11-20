@@ -8,6 +8,7 @@
 int compare_bytes(char*, long, char*, long);
 int append_test(void);
 int re_write_test(void);
+int delete_test(void);
 
 int main(void) {
   if (append_test()) {
@@ -18,12 +19,45 @@ int main(void) {
     return 1;
   }
 
-  /*
-  delete
-  append write
-  delete
-  make sure the get offset is adjusted
-  */
+  if (delete_test()) {
+    return 1;
+  }
+
+  return 0;
+}
+
+int delete_test(void) {
+  int test_fd;
+  long block_size = 4096;
+  struct Jc_Storage_Engine* storage_engine = jc_storage_engine_new("test", block_size);
+
+  remove("test");
+  test_fd = open("test", O_TMPFILE);
+  {
+    /*
+      delete
+      append write
+      delete
+      expect get should return 0
+    */
+    void* data_1 = calloc(block_size, 1);
+    int test_val_1 = 100;
+    void* result_val = malloc(block_size);
+    long read_bytes;
+
+    memcpy(data_1, &test_val_1, sizeof(test_val_1));
+
+    jc_storage_engine_write(storage_engine, data_1, 0);
+    jc_storage_engine_delete_last_block(storage_engine);
+    read_bytes = jc_storage_engine_get(storage_engine, result_val, 0);
+
+    if (read_bytes > 0) {
+      return 1;
+    }
+
+  }
+
+  close(test_fd);
   return 0;
 }
 
